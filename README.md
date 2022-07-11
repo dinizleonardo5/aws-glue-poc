@@ -1,4 +1,4 @@
-## Construindo um Data Lakehouse com AWS Glue | Live #70
+## Building a Data Lakehouse with AWS Glue
 ```sh
 # working directory
 cd terraform
@@ -12,5 +12,3 @@ terraform plan
 # apply iac
 terraform apply
 ```
-
-![aws_lakehouse_with_glue](https://github.com/josecarlosbarbosa/owshq-live-lakehouse-with-glue/blob/main/docs/aws_lakehouse_with_glue.png)
