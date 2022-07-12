@@ -32,6 +32,13 @@ def create_spark_session():
     * input_data the s3 bucket path to the song data
     * output_data the s3 bucket path to store songs and artists table
 """
+def write_df_s3(df, write_mode, path, default_format="delta"):
+    if df.rdd.getNumPartitions() >= 3:
+        df.coalesce(1).write.mode(write_mode).format(default_format).save(path)
+    else:
+        df.write.mode(write_mode).format(default_format).save(path)
+
+
 def process_song_data(spark, input_data, output_data):
     # get filepath to song data file
     song_data = input_data + "song_data/*/"
@@ -43,13 +50,13 @@ def process_song_data(spark, input_data, output_data):
     songs_table = df.select(['song_id', 'title', 'artist_id', 'artist_name', 'year', 'duration'])
     
     # write songs table to delta files partitioned by year and artist
-    songs_table.write.mode('overwrite').format("delta").save(output_data+'songs')
+    write_df_s3(songs_table, 'overwrite', output_data+'songs')
 
     # extract columns to create artists table
     artists_table = df.select(['artist_id', 'artist_name', 'artist_location', 'artist_latitude', 'artist_longitude'])
     
     # write artists table to delta files
-    artists_table.write.mode('overwrite').format("delta").save(output_data + 'artists')
+    write_df_s3(artists_table, 'overwrite', output_data + 'artists')
 
 
 """
@@ -78,7 +85,7 @@ def process_log_data(spark, input_data, output_data):
     users_table = df.select(['userId', 'firstName', 'lastName', 'gender', 'level'])
     
     # write users table to delta files
-    users_table.write.mode('overwrite').format("delta").save(output_data + 'users')
+    write_df_s3(users_table, 'overwrite', output_data + 'users')
 
     # create timestamp column from original timestamp column    
     get_timestamp = udf(lambda x: datetime.fromtimestamp( (x/1000.0) ), T.TimestampType()) 
@@ -99,7 +106,7 @@ def process_log_data(spark, input_data, output_data):
     time_table = df.select(['timestamp', 'start_time', 'hour', 'day', 'week', 'month', 'year', 'weekday'])
     
     # write time table to delta files partitioned by year and month
-    time_table.write.mode('overwrite').format("delta").save(output_data+'time')
+    write_df_s3(time_table, 'overwrite', output_data+'time')
 
     # read in song data to use for songplays table
     song_df = spark.read.format("delta").load(output_data + '/songs/')
@@ -116,7 +123,7 @@ def process_log_data(spark, input_data, output_data):
     )
     
     # write songplays table to delta files partitioned by year and month
-    songplays_table.write.mode('overwrite').format("delta").save(output_data + 'songplays')
+    write_df_s3(songplays_table, 'overwrite', output_data + 'songplays')
 
 
 def main():
