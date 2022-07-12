@@ -6,7 +6,7 @@
  jobs:
    deploy_scripts_s3:
      name: Copy scripts to s3
-     runs-on: self-hosted
+     runs-on: ubuntu-latest
 
      steps:
      - name: Checkout
